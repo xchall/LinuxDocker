@@ -43,6 +43,7 @@ jobs:
         run: |
           docker run --rm --network=host ${{ vars.DOCKERHUB_USERNAME }}/python-crud-dev:latest
 
+
   deploy:
     needs: test
     runs-on: self-hosted
@@ -68,9 +69,9 @@ jobs:
           context: .
           file: ./Dockerfile.prod
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest 
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
 
-      - name: Deploy to server 
+      - name: Deploy to on server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -79,9 +80,17 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             podman login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
-            podman stop python-crud || true
-            podman rm python-crud || true
-            podman rmi ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest || true
-            podman pull ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
-            podman run -d --name python-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
-            echo "Container deployed successfully!"
+
+            # Stop and remove existing container if it exists
+            podman stop pythod-crud || true
+            podman rm pythod-crud || true
+
+            # Remove existing image if it exists
+            podman rmi ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest || true
+
+            # Pull new image from Docker Hub
+            podman pull ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+
+            # Run new container
+            podman run -d --name pythod-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+            echo "Container has been deployed successfully!"
