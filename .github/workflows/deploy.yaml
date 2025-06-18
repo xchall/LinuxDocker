@@ -1,0 +1,60 @@
+name: Build, Test and Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13-alpine
+        env:
+          POSTGRES_USER: kubsu
+          POSTGRES_PASSWORD: kubsu
+          POSTGRES_DB: kubsu
+        ports:
+          - "5432:5432"
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Podman
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y podman
+
+    - name: Build and test
+      run: |
+        podman build -t app-builder -f Dockerfile --target builder .
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      run: |
+        podman login -u ${{ secrets.DOCKER_HUB_USERNAME }} \
+                    -p ${{ secrets.DOCKER_HUB_TOKEN }} \
+                    docker.io
+
+    - name: Build and push
+      run: |
+        podman build -t ${{ secrets.DOCKER_HUB_USERNAME_NEW }}/kubsu-app:latest .
+        podman push ${{ secrets.DOCKER_HUB_USERNAME_NEW }}/kubsu-app:latest
+
+    - name: Deploy container
+      run: |
+        podman stop kubsu-app || true
+        podman rm kubsu-app || true
+        podman run -d \
+          --name kubsu-app \
+          --network host \
+          --restart unless-stopped \
+          ${{ secrets.DOCKER_HUB_USERNAME_NEW }}/kubsu-app:latest
+        echo "✅ Контейнер успешно запущен"
+        podman ps -a --filter name=kubsu-app
