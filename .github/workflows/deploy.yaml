@@ -24,9 +24,6 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - name: Clear Git proxy settings
-      run: git config --global --unset http.proxy && git config --global --unset https.proxy
-
     - uses: actions/checkout@v3
 
     - name: Setup Podman
