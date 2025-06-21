@@ -29,7 +29,6 @@ jobs:
     - name: Build and test
       run: |
         podman build -t app-builder -f Dockerfile --target builder .
-
  deploy:
     needs: test
     runs-on: self-hosted
