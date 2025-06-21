@@ -1,10 +1,5 @@
 FROM python:3.11-alpine as builder
 
-RUN rm -f /etc/resolv.conf && \
-    echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
-    echo "nameserver 8.8.4.4" >> /etc/resolv.conf && \
-    chmod 644 /etc/resolv.conf
-
 WORKDIR /app
 
 RUN apk add --no-cache python3-dev py3-pip gcc musl-dev
