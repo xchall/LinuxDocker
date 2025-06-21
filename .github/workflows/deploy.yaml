@@ -37,6 +37,7 @@ jobs:
         podman build -t app-builder -f Dockerfile --target builder .
 
   deploy:
+    needs: test
     runs-on: self-hosted
     env:
       http_proxy: ""
