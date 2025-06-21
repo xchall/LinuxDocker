@@ -1,24 +1,29 @@
+FROM python:3.11-alpine as builder
+
+WORKDIR /app
+
+RUN apk add --no-cache python3-dev py3-pip gcc musl-dev
+
+RUN python -m venv /app/venv
+
+ENV PATH="/app/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+
+COPY pyproject.toml /app
+
+RUN pip install --no-cache-dir --upgrade pip && \
+		pip install --no-cache-dir .
+
+
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Установка минимальных системных зависимостей
-RUN apk add --no-cache libpq
-
-# Копирование зависимостей и установка
-COPY pyproject.toml poetry.lock* /app/
-
-# Установка Poetry (если используете) или напрямую зависимостей
-RUN pip install --upgrade pip && \
-    pip install uvicorn fastapi  # Добавьте здесь другие зависимости
-
-# Копирование исходного кода
+COPY --from=builder /app/venv /app/venv
 COPY src /app/src
 
-# Настройка окружения
+ENV PATH="/app/venv/bin:$PATH"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-EXPOSE 8044
-
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8044"]
+CMD [ "uvicorn", "src.main:app", "--reload", "--host", "0.0.0.0", "--port", "8044" ]
