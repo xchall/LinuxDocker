@@ -1,6 +1,7 @@
 # Этап сборки
 FROM python:3.11-alpine as builder
 
+
 WORKDIR /app
 COPY pyproject.toml .
 RUN pip install -e .
