@@ -3,7 +3,7 @@ FROM python:3.11-alpine as builder
 
 WORKDIR /app
 COPY pyproject.toml .
-RUN pip install --user -e .
+RUN pip install -e .
 
 # Финальный образ
 FROM python:3.11-alpine
