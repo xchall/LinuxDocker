@@ -29,7 +29,8 @@ jobs:
     - name: Build and test
       run: |
         podman build -t app-builder -f Dockerfile --target builder .
- deploy:
+
+  deploy:
     needs: test
     runs-on: self-hosted
     steps:
@@ -73,8 +74,8 @@ jobs:
             podman rmi ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest || true
 
             # Pull new image from Docker Hub
-            podman pull ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+            podman pull ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
 
             # Run new container
-            podman run -d --name pythod-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+            podman run -d --name python-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
             echo "Container has been deployed successfully!"
