@@ -1,3 +1,4 @@
+
 name: Build, Test and Deploy
 
 on:
@@ -37,12 +38,12 @@ jobs:
 
       - name: Build final image
         run: |
-          podman build -t ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest -f Dockerfile .
+          podman build -t ${{ vars.DOCKERHUB_USERNAME }}/xchall-app:latest -f Dockerfile .
 
       - name: Push to Docker Hub
         run: |
           podman login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
-          podman push ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+          podman push ${{ vars.DOCKERHUB_USERNAME }}/xchall-app:latest
 
   deploy:
     needs: build-and-test
@@ -62,8 +63,8 @@ jobs:
           script: |
             unset http_proxy https_proxy
             podman login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
-            podman stop pythod-crud || true
-            podman rm pythod-crud || true
-            podman rmi ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest || true
-            podman pull ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
-            podman run -d --name pythod-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+            podman stop xhall-app || true
+            podman rm xhall-app || true
+            podman rmi ${{ vars.DOCKERHUB_USERNAME }}/xchall-app:latest || true
+            podman pull ${{ vars.DOCKERHUB_USERNAME }}/xchall-app:latest
+            podman run -d --name xhall-app --network host ${{ vars.DOCKERHUB_USERNAME }}/xchall-app:latest
