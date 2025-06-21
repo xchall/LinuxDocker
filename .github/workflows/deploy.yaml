@@ -12,6 +12,7 @@ jobs:
       https_proxy: ""
       no_proxy: "*"
 
+
     services:
       postgres:
         image: postgres:13-alpine
