@@ -2,7 +2,6 @@ FROM python:3.11-alpine as builder
 
 WORKDIR /app
 
-
 RUN python -m venv /app/venv
 
 ENV PATH="/app/venv/bin:$PATH"
