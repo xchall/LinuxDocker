@@ -7,6 +7,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    # Явно отключаем прокси для всего job
+    env:
+      http_proxy: ""
+      https_proxy: ""
+      no_proxy: "*"
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      NO_PROXY: "*"
+
     services:
       postgres:
         image: postgres:13-alpine
@@ -19,6 +29,15 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
+    - name: Clear proxy settings
+      run: |
+        # Очищаем глобальные настройки Git
+        git config --global --unset http.proxy
+        git config --global --unset https.proxy
+        # Очищаем переменные окружения в текущей сессии
+        echo "unset http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY" >> $BASH_ENV
+        source $BASH_ENV
+
     - uses: actions/checkout@v3
 
     - name: Setup Podman
@@ -33,6 +52,10 @@ jobs:
   deploy:
     needs: test
     runs-on: self-hosted
+    env:
+      http_proxy: ""
+      https_proxy: ""
+      no_proxy: "*"
     steps:
       - name: Checkout master branch
         uses: actions/checkout@v4
@@ -56,7 +79,7 @@ jobs:
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
 
-      - name: Deploy to on server
+      - name: Deploy to server  # Исправлено: убрано лишнее "on"
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -64,18 +87,13 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Очищаем настройки прокси на удалённом сервере
+            export http_proxy=
+            export https_proxy=
             podman login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
-
-            # Stop and remove existing container if it exists
             podman stop python-crud || true
             podman rm python-crud || true
-
-            # Remove existing image if it exists
             podman rmi ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest || true
-
-            # Pull new image from Docker Hub
             podman pull ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
-
-            # Run new container
-            podman run -d --name python-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/pythod-crud:latest
+            podman run -d --name python-crud --network host ${{ vars.DOCKERHUB_USERNAME }}/python-crud:latest
             echo "Container has been deployed successfully!"
