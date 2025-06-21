@@ -1,26 +1,21 @@
 # Этап сборки
-FROM python:3.11-alpine as builder
-
+FROM python:3.11-slim as builder
 
 WORKDIR /app
 COPY pyproject.toml .
-RUN pip install -e .
+RUN pip install --user -e .
 
 # Финальный образ
-FROM python:3.11-alpine
+FROM python:3.11-slim
 WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /app /app
 COPY src/ src/
 
-# Устанавливаем curl для healthcheck
-RUN apk add --no-cache curl
-
 # Настройки
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONUNBUFFERED=1
 USER nobody
-
 
 # Порт и healthcheck
 EXPOSE 8044
