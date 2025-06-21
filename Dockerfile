@@ -2,7 +2,7 @@ FROM python:3.11-alpine as builder
 
 WORKDIR /app
 
-RUN apk add --no-cache python3-dev py3-pip gcc musl-dev
+RUN apk update && apk add --no-cache python3-dev py3-pip gcc musl-dev
 
 RUN python -m venv /app/venv
 
